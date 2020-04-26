@@ -11,6 +11,6 @@
 - [x] using ubuntu/linux
 - [x] goto tracking file <br><br>
 ### running
-> $ sudo apt-get install libopencv-dev
-> $ g++ file.c++ -o NewOutFile `pkg-config --cflags --libs opencv`
-> $ ./NewOutFile
+> $ sudo apt-get install libopencv-dev <br>
+> $ g++ file.c++ -o NewOutFile `pkg-config --cflags --libs opencv`<br>
+> $ ./NewOutFile <br>
