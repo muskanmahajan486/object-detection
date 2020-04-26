@@ -1,3 +1,12 @@
+//--------------------------
+//  author = Danu andrean
+//  create = mey,19
+//  title  = object tracking
+
+//-----------------------------------
+//  done
+//
+//-----------------------------------
 
 #include <sstream>
 #include <opencv2/highgui/highgui.hpp>
