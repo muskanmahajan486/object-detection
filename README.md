@@ -12,7 +12,7 @@
 - [x] goto tracking file <br><br>
 ### running
 > $ sudo apt-get install libopencv-dev <br>
-> $ g++ file.cpp -o NewOutFile `pkg-config --cflags --libs opencv`<br>
+> $ g++ file.cpp -o NewOutFile 'pkg-config --cflags --libs opencv'<br>
 > $ ./NewOutFile <br>
 <br><br><br>
 ## enjoy the code!
