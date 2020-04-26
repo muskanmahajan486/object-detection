@@ -15,4 +15,4 @@
 > $ g++ file.c++ -o NewOutFile `pkg-config --cflags --libs opencv`<br>
 > $ ./NewOutFile <br>
 <br><br><br>
-## enjoy the code
+## enjoy the code!
