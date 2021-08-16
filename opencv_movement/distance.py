@@ -25,6 +25,7 @@ while True:
 			x1 = int(x1)
 			y1 = int(y1)
 			cv2.line(prev, (20,200), (x1, y1), (255,0,0), 4)
+			#dist = math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
 			cv2.putText(prev, "{}".format(int(np.sqrt((x1 - 20)**2 + (y1 - 200)**2))), (100,100),cv2.FONT_HERSHEY_SIMPLEX, 2, (0,255,0), 3)
 			cv2.rectangle(prev, (x,y), (x+w,y+h), (0,255,0), 2)
 			cv2.circle(prev, (x1,y1), 5, (0,0,255), -1)
