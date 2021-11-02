@@ -1,26 +1,41 @@
 import cv2 as cv
 import numpy as np
 
-# ilowH = 20
-# ilowS = 110
-# ilowV = 130
-# ihighH = 48
-# ihighS = 176
-# ihighV = 255
-
 ilowH = 20
-ilowS = 220
-ilowV = 154
-ihighH = 255
-ihighS = 255
+ilowS = 110
+ilowV = 130
+ihighH = 48
+ihighS = 176
 ihighV = 255
+
+# ilowH = 20
+# ilowS = 220
+# ilowV = 154
+# ihighH = 255
+# ihighS = 255
+# ihighV = 255
 
 WIDTH = 800
 HEIGHT = 700
 
-cap = cv.VideoCapture('ucup/Pengujian data Univen flor 2.mp4')
+cap = cv.VideoCapture('log/l2.mp4')
 cv.namedWindow('image',cv.WINDOW_NORMAL)
 import matplotlib.pyplot as plt
+
+
+
+x_prev = 0
+y_prev = 0
+point_w_start = 0
+point_w_end = 0
+point_h_start = 0
+point_h_end = 0
+length_w = 0
+length_h = 0
+count_point = 0
+switch_track = False
+
+
 
 def callback(x):
     pass
@@ -85,6 +100,9 @@ cv.createTrackbar('highV','image',ihighV,255,callback)
 list_ball_location = []
 history_ball_locations = []
 isDraw = True
+list_trig_x=[]
+length =0
+max_length = 0
 
 while True:
     try:
@@ -169,16 +187,80 @@ while True:
                 add_data(center_x,HEIGHT-center_y) # make plot
                 # print("---------")
             
-            else:
-                history_ball_locations.append(list_ball_location.copy())
-                list_ball_location.clear()
+            # else:
+                # history_ball_locations.append(list_ball_location.copy())
+                # list_ball_location.clear()
 
         img_color = draw_ball_location(img_color, list_ball_location)
 
-        for ball_locations in history_ball_locations:
-            img_color = draw_ball_location(img_color, ball_locations)
+        
 
-        # print(list_ball_location.copy())
+
+
+        if list_ball_location :
+            if(switch_track == False):
+                count_point +=1
+                if(count_point ==1):
+                    point_w_start = center_x
+                    point_h_start = center_y
+
+                point_w_end = center_x
+                point_h_end = center_y
+                # length_w = point_w_end - point_w_start
+
+                length_w = int(np.sqrt((point_w_end - point_w_start)**2 + (point_h_start - point_h_end)**2))
+
+                #  length_real / length_pixel
+                #  teshold = 0.092857143
+
+                length_real = length_w *0.092857143 
+                
+                #===============================================================================
+                print("----------",center_x)
+                print("max==================",max_length)
+                if(list_trig_x):
+                    if(center_x <= list_trig_x[-1]):
+                        length +=1
+                    else:
+                        length = 0
+
+                if(length > max_length and center_x > 100):
+                    max_length = length #11
+
+                x_prev = center_x
+                y_prev = center_y
+                
+                if(max_length > 11):
+                    switch_track = True
+                    point_w_start = center_x+50
+                    point_h_start = center_y
+                    x_prev = point_w_start
+
+                list_trig_x.append(center_x)
+                cv.putText(img_color,str(length_real),(center_x, center_y - 20), cv.FONT_HERSHEY_COMPLEX, 1 ,(0,0,255), 2)
+            else:
+                point_w_end = center_x
+                point_h_end = center_y
+                # length_w = point_w_end - point_w_start
+
+                length_w = int(np.sqrt((point_w_end - point_w_start)**2 + (point_h_start - point_h_end)**2))
+
+                #  length_real / length_pixel
+                #  teshold = 0.092857143
+
+                length_real = length_w *0.092857143 
+            
+                print("----------",length_real)
+                cv.putText(img_color,str(length_real),(center_x, center_y - 20), cv.FONT_HERSHEY_COMPLEX, 1 ,(0,0,255), 2)
+                cv.line(img_color, (point_w_start,point_h_start), tuple(list_ball_location[-1]), (0, 255, 0), 3)
+            
+            cv.line(img_color, tuple(list_ball_location[0]), (x_prev,y_prev), (255, 0, 255), 3)
+          
+        
+        # for ball_locations in history_ball_locations:
+        #     img_color = draw_ball_location(img_color, ball_locations)
+
+        print(length)
         
         cv.imshow('Blue', img_mask)
         cv.imshow('Result', img_color)
@@ -198,6 +280,6 @@ while True:
         plt.plot(data_point['x'],data_point['y'], 'r')
         plt.xlabel('X')
         plt.ylabel('Y')
-        # plt.ylim([100, 700])
+        plt.ylim([100, 700])
         plt.show()
         break

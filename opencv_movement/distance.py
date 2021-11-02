@@ -1,7 +1,7 @@
 import cv2
 import numpy as np 
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(2)
 
 _, prev = cap.read()
 prev = cv2.flip(prev, 1)
@@ -16,10 +16,10 @@ while True:
 	_,thresh = cv2.threshold(diff, 10, 255, cv2.THRESH_BINARY)
 	threh = cv2.dilate(thresh, None, 3)
 	thresh = cv2.erode(thresh, np.ones((4,4)), 1)
-	_,contor,_ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+	contor,_ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 	cv2.circle(prev, (20,200), 5, (0,0,255), -1)
 	for contors in contor:				
-		if cv2.contourArea(contors) > 30000:
+		if cv2.contourArea(contors) > 3000:
 			(x,y,w,h) = cv2.boundingRect(contors)
 			(x1,y1),rad = cv2.minEnclosingCircle(contors)
 			x1 = int(x1)
