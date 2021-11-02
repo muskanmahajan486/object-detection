@@ -1,5 +1,6 @@
 import cv2 as cv
 import numpy as np
+import math
 
 ilowH = 20
 ilowS = 110
@@ -18,11 +19,15 @@ ihighV = 255
 WIDTH = 800
 HEIGHT = 700
 
-cap = cv.VideoCapture('log/l2.mp4')
+cap = cv.VideoCapture('log/l3.mp4')
 cv.namedWindow('image',cv.WINDOW_NORMAL)
 import matplotlib.pyplot as plt
 
 
+list_trig_x=[]
+list_trig_y=[]
+length =0
+max_length = 0
 
 x_prev = 0
 y_prev = 0
@@ -34,6 +39,13 @@ length_w = 0
 length_h = 0
 count_point = 0
 switch_track = False
+calibration_factor = 0.212857143 
+container_y = 0
+container_y2 = 0
+container_x = 0
+center_y_prevs = 0
+center_x_prevs = 0
+y_points = 0
 
 
 
@@ -59,7 +71,7 @@ def draw_ball_location(img_color, locations):
 
         loc1 = (30,200)
         loc2 = (70,90)
-        cv.line(img_color, tuple(locations[i]), tuple(locations[i+1]), (0, 255, 255), 3)
+        cv.line(img_color, tuple(locations[i]), tuple(locations[i+1]), (0, 255, 255), 2)
 
         # add_data( [locations[i][0],locations[i+1][0]], [HEIGHT- locations[i][1],HEIGHT-locations[i+1][1]] )
         # add_data( locations[i][0], locations[i][1] )
@@ -100,9 +112,7 @@ cv.createTrackbar('highV','image',ihighV,255,callback)
 list_ball_location = []
 history_ball_locations = []
 isDraw = True
-list_trig_x=[]
-length =0
-max_length = 0
+
 
 while True:
     try:
@@ -179,7 +189,7 @@ while True:
             height = stats[max_index, cv.CC_STAT_HEIGHT]
 
 
-            cv.rectangle(img_color, (left, top), (left + width, top + height), (0, 0, 255), 5)
+            cv.rectangle(img_color, (left, top), (left + width, top + height), (255, 0,0 ), 5)
             # cv.circle(img_color, (center_x, center_y), 10, (0, 255, 0), -1)
 
             if isDraw:
@@ -213,31 +223,63 @@ while True:
                 #  length_real / length_pixel
                 #  teshold = 0.092857143
 
-                length_real = length_w *0.092857143 
+                length_real = length_w * calibration_factor 
                 
                 #===============================================================================
                 print("----------",center_x)
-                print("max==================",max_length)
                 if(list_trig_x):
+
+                    if(center_y <= list_trig_y[-1] ):
+                        container_y += abs(center_y_prevs - center_y)
+                      
+                    if(center_y >= list_trig_y[-1] ):
+                        container_y2 += abs(center_y_prevs - center_y)
+                      
                     if(center_x <= list_trig_x[-1]):
+                        container_x += abs(center_x_prevs - center_x)
                         length +=1
                     else:
                         length = 0
+                        container_x = 0
+                        container_y = 0
+                        container_y2 = 0
+
+                    center_y_prevs = center_y
+                    center_x_prevs = center_x
+
+                    print("x ------",container_x,"|||| y-----------",container_y,"y2-----------",container_y2)
 
                 if(length > max_length and center_x > 100):
-                    max_length = length #11
+                   
+                    if(container_y > container_y2):
+                        y_points = container_y
+                    else:
+                        y_points = container_y2
 
+                    pythagoras = np.sqrt(container_x**2 +y_points**2)
+                    rad = math.sin(y_points/pythagoras)
+                    degress = math.degrees(rad)
+
+                    print("deg >",degress)
+
+                    # if(container_x > container_y+50 or container_x > container_y2+40):
+                    
+                    if(degress < 15):
+                        max_length = length #11
+
+                print("max==================",max_length)
                 x_prev = center_x
                 y_prev = center_y
                 
-                if(max_length > 11):
+                if(max_length >= 11):
                     switch_track = True
                     point_w_start = center_x+50
                     point_h_start = center_y
                     x_prev = point_w_start
 
                 list_trig_x.append(center_x)
-                cv.putText(img_color,str(length_real),(center_x, center_y - 20), cv.FONT_HERSHEY_COMPLEX, 1 ,(0,0,255), 2)
+                list_trig_y.append(center_y)
+                # cv.putText(img_color,str(length_real),(center_x, center_y - 20), cv.FONT_HERSHEY_COMPLEX, 1 ,(0,0,255), 2)
             else:
                 point_w_end = center_x
                 point_h_end = center_y
@@ -248,19 +290,20 @@ while True:
                 #  length_real / length_pixel
                 #  teshold = 0.092857143
 
-                length_real = length_w *0.092857143 
+                length_real_switch = length_w * calibration_factor 
             
                 print("----------",length_real)
-                cv.putText(img_color,str(length_real),(center_x, center_y - 20), cv.FONT_HERSHEY_COMPLEX, 1 ,(0,0,255), 2)
-                cv.line(img_color, (point_w_start,point_h_start), tuple(list_ball_location[-1]), (0, 255, 0), 3)
+                cv.putText(img_color,str("{:.2f} cm".format(length_real_switch)),(center_x - 60, point_h_start + int((center_y-point_h_start)/2)), cv.FONT_HERSHEY_COMPLEX, 1 ,(0,0,0), 2)
+                cv.line(img_color, (point_w_start,point_h_start), tuple(list_ball_location[-1]), (0, 50, 255), 3)
             
-            cv.line(img_color, tuple(list_ball_location[0]), (x_prev,y_prev), (255, 0, 255), 3)
+            cv.putText(img_color,str("{:.2f} cm".format(length_real)),(list_ball_location[0][0] + int((x_prev - list_ball_location[0][0])/2), y_prev - 40), cv.FONT_HERSHEY_COMPLEX, 1 ,(0,0,0), 2)
+            cv.line(img_color, tuple(list_ball_location[0]), (x_prev,y_prev), (0, 0, 255), 3)
           
         
         # for ball_locations in history_ball_locations:
         #     img_color = draw_ball_location(img_color, ball_locations)
 
-        print(length)
+        # print(length)
         
         cv.imshow('Blue', img_mask)
         cv.imshow('Result', img_color)
