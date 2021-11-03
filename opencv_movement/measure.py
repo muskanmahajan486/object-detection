@@ -19,7 +19,7 @@ ihighV = 255
 WIDTH = 800
 HEIGHT = 700
 
-cap = cv.VideoCapture('log/l3.mp4')
+cap = cv.VideoCapture('log/l2.mp4')
 cv.namedWindow('image',cv.WINDOW_NORMAL)
 import matplotlib.pyplot as plt
 
@@ -35,17 +35,22 @@ point_w_start = 0
 point_w_end = 0
 point_h_start = 0
 point_h_end = 0
+
+point_w_start_ = 0
+point_h_start_ = 0
+
 length_w = 0
 length_h = 0
 count_point = 0
 switch_track = False
-calibration_factor = 0.212857143 
+calibration_factor = 0.192857143 
 container_y = 0
 container_y2 = 0
 container_x = 0
 center_y_prevs = 0
 center_x_prevs = 0
 y_points = 0
+count_same_x = 0
 
 
 
@@ -209,24 +214,9 @@ while True:
 
         if list_ball_location :
             if(switch_track == False):
-                count_point +=1
-                if(count_point ==1):
-                    point_w_start = center_x
-                    point_h_start = center_y
-
-                point_w_end = center_x
-                point_h_end = center_y
-                # length_w = point_w_end - point_w_start
-
-                length_w = int(np.sqrt((point_w_end - point_w_start)**2 + (point_h_start - point_h_end)**2))
-
-                #  length_real / length_pixel
-                #  teshold = 0.092857143
-
-                length_real = length_w * calibration_factor 
-                
-                #===============================================================================
+    
                 print("----------",center_x)
+                print("length----------",length)
                 if(list_trig_x):
 
                     if(center_y <= list_trig_y[-1] ):
@@ -236,9 +226,18 @@ while True:
                         container_y2 += abs(center_y_prevs - center_y)
                       
                     if(center_x <= list_trig_x[-1]):
+                        if(center_x_prevs == center_x):
+                            count_same_x +=1
+                        else:
+                            count_same_x =0
+
+                        if(count_same_x > 3):
+                            length = 0
+
                         container_x += abs(center_x_prevs - center_x)
                         length +=1
                     else:
+                        count_same_x = 0
                         length = 0
                         container_x = 0
                         container_y = 0
@@ -271,11 +270,33 @@ while True:
                 x_prev = center_x
                 y_prev = center_y
                 
+                
+                
+                #====================================algo===========================================
                 if(max_length >= 11):
                     switch_track = True
-                    point_w_start = center_x+50
+                    point_w_start = center_x +50
                     point_h_start = center_y
                     x_prev = point_w_start
+                    
+                count_point +=1
+                if(count_point ==1):
+                    point_w_start_ = center_x
+                    point_h_start_ = center_y
+                point_w_end = x_prev
+                point_h_end = y_prev
+                # length_w = point_w_end - point_w_start
+
+                length_w = int(np.sqrt((point_w_end - point_w_start_)**2 + (point_h_start_ - point_h_end)**2))
+
+                #  length_real / length_pixel
+                #  teshold = 0.092857143
+
+
+
+                length_real = length_w * calibration_factor 
+                
+                #===============================================================================
 
                 list_trig_x.append(center_x)
                 list_trig_y.append(center_y)
@@ -296,7 +317,7 @@ while True:
                 cv.putText(img_color,str("{:.2f} cm".format(length_real_switch)),(center_x - 60, point_h_start + int((center_y-point_h_start)/2)), cv.FONT_HERSHEY_COMPLEX, 1 ,(0,0,0), 2)
                 cv.line(img_color, (point_w_start,point_h_start), tuple(list_ball_location[-1]), (0, 50, 255), 3)
             
-            cv.putText(img_color,str("{:.2f} cm".format(length_real)),(list_ball_location[0][0] + int((x_prev - list_ball_location[0][0])/2), y_prev - 40), cv.FONT_HERSHEY_COMPLEX, 1 ,(0,0,0), 2)
+            cv.putText(img_color,str("{:.2f} cm".format(length_real)),(list_ball_location[0][0] + int((x_prev - list_ball_location[0][0])/2), list_ball_location[0][1] - 60), cv.FONT_HERSHEY_COMPLEX, 1 ,(0,0,0), 2)
             cv.line(img_color, tuple(list_ball_location[0]), (x_prev,y_prev), (0, 0, 255), 3)
           
         
